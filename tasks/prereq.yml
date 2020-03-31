@@ -1,8 +1,9 @@
 ---
 
 - name: "Install apt packages"
-  apt: name={{ item }} state=present
-  with_items: ['unzip', 'libwww-perl',  'libdatetime-perl']
+  apt: 
+    name: unzip, libwww-perl,  libdatetime-perl
+    state: present
   when: ansible_os_family == "Debian"
   become: True
 
@@ -18,14 +19,52 @@
   when: ansible_os_family == "Suse"
   become: True
 
+- name: Delete old dir
+  file:
+    path: "{{ cloud_watch_monitoring_path  }}/aws-scripts-mon-{{ package_version }}"
+    state: absent
+  become: True
+
+- name: Delete old symlink
+  file:
+    path: "{{ cloud_watch_monitoring_path  }}/aws-scripts-mon"
+    state: absent
+  become: True
+
 - name: Download Amazon CloudWatch Monitoring Scripts
-  get_url: url=http://aws-cloudwatch.s3.amazonaws.com/downloads/CloudWatchMonitoringScripts-1.2.1.zip dest={{ cloud_watch_monitoring_path }}/CloudWatchMonitoringScripts-1.2.1.zip
+  get_url: 
+    url: "http://aws-cloudwatch.s3.amazonaws.com/downloads/CloudWatchMonitoringScripts-{{ package_version }}.zip"
+    dest: "{{ cloud_watch_monitoring_path }}/CloudWatchMonitoringScripts-{{ package_version }}.zip"
+  become: True
 
 - name: Unarchive zip
   unarchive:
-    src: "{{ cloud_watch_monitoring_path  }}/CloudWatchMonitoringScripts-1.2.1.zip"
+    src: "{{ cloud_watch_monitoring_path  }}/CloudWatchMonitoringScripts-{{ package_version }}.zip"
     dest: "{{ cloud_watch_monitoring_path  }}"
     remote_src: True
+  become: True
+
+- name: Check dir exists
+  stat: 
+    path: "{{ cloud_watch_monitoring_path  }}/aws-scripts-mon"
+  register: cloud_watch_monitoring_scripts_path
+
+- name: DEBUG
+  debug:
+    msg: "cloud_watch_monitoring_scripts_path: {{ cloud_watch_monitoring_scripts_path['stat']['path'] }}"
+  
+- name: Rename(aka mv) dir
+  command: mv "{{ cloud_watch_monitoring_scripts_path['stat']['path'] }}" "{{ cloud_watch_monitoring_scripts_path['stat']['path'] }}-{{ package_version }}"
+
+- name: Symlink without version to the script
+  file:
+    src: "{{ cloud_watch_monitoring_scripts_path['stat']['path'] }}-{{ package_version }}"
+    dest: "{{ cloud_watch_monitoring_scripts_path['stat']['path']  }}"
+    state: link
+  become: True
 
 - name: Delete zip file
-  file: path={{ cloud_watch_monitoring_path }}/CloudWatchMonitoringScripts-1.2.1.zip state=absent
+  file: 
+    path: "{{ cloud_watch_monitoring_path }}/CloudWatchMonitoringScripts-{{ package_version }}.zip" 
+    state: absent
+  become: True

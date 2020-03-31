@@ -1,10 +1,22 @@
 ---
-- stat: path={{cloud_watch_monitoring_path}}/aws-scripts-mon
+# Make sure the folder with version suffix, and symlink to it without version suffix
+- name: "Find path with version"
+  stat:
+    path: "{{ cloud_watch_monitoring_path }}/aws-scripts-mon-{{ package_version }}"
   register: scripts_dir
 
-- name: Setup Amazon CloudWatch Monitoring Scr
+- name: "Find symlink without version"
+  stat:
+    path: "{{ cloud_watch_monitoring_path }}/aws-scripts-mon"
+  register: sym
+
+- debug:
+    msg: "Both path with version and Symlink exist and consistent, should not do anything"
+  when: scripts_dir.stat.exists and sym.islink is defined and sym.islink and sym.stat.lnk_source == scripts_dir.stat.path
+
+- name: Setup Amazon CloudWatch Monitoring Script and Symlink
   import_tasks: prereq.yml
-  when: scripts_dir.stat.exists == False
+  when: scripts_dir.stat.exists == False or sym.stat.lnk_source != scripts_dir.stat.path and force != true
 
 - name: Setup Cron
   import_tasks: cron_setup.yml
