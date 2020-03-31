@@ -4,6 +4,12 @@ Ansible Role to install CloudWatchMonitoringScripts and Monitor Memory and Disk 
 
 ## Role Variables
 
+The current version of Cloud Watch Monitoring Scripts is defined:
+
+```
+package_version: '1.2.2'
+```
+
 Following variables need to be defined:
 
 - cloud_watch_monitoring_path - Path where scripts will be downloaded and unarchieved
@@ -57,6 +63,10 @@ Two extra parameters, in case log from server outside AWS
 --aws-access-key-id=your_aws_access_key_id
 --aws-secret-key=your_aws_secret_key
 ```
+
+## Testing
+
+This fork is only tested with ansible-playbook 2.9.5 on Ubuntu 18.04.
 
 ## License
 

@@ -8,14 +8,17 @@
   become: True
 
 - name: "Install yum packages"
-  yum: name={{ item }} state=present
-  with_items: ['perl-Switch', 'perl-DateTime',  'perl-Sys-Syslog', 'perl-LWP-Protocol-https', 'perl-Digest-SHA']
+  yum: 
+    name: perl-Switch, perl-DateTime, perl-Sys-Syslog, perl-LWP-Protocol-https, perl-Digest-SHA
+    state: present
+  with_items: []
   when: ansible_os_family == "RedHat"
   become: True
 
 - name: "Install zypper packages"
-  zypper: name={{ item }} state=present
-  with_items: ['perl-Switch', 'perl-DateTime',  'perl(LWP::Protocol::https)']
+  zypper:
+    name: perl-Switch, perl-DateTime, perl(LWP::Protocol::https)
+    state: present
   when: ansible_os_family == "Suse"
   become: True
 
